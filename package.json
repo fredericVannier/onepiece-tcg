@@ -1,0 +1,24 @@
+{
+  "name": "onepiece-tcg",
+  "version": "1.0.0",
+  "description": "A web app to check all the cards from the One Piece TCG",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev:web": "pnpm --filter web dev",
+    "dev:api": "go run apps/api/cmd/api/main.go"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fredericVannier/onepiece-tcg.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/fredericVannier/onepiece-tcg/issues"
+  },
+  "homepage": "https://github.com/fredericVannier/onepiece-tcg#readme"
+}

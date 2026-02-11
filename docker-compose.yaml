@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: optcg-postgres
+    environment:
+      POSTGRES_USER: op
+      POSTGRES_PASSWORD: op
+      POSTGRES_DB: op
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+volumes:
+  postgres_data:
