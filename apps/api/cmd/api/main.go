@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
 
 	"github.com/joho/godotenv"
 	"onepiece-tcg-api/internal/cards"
@@ -16,17 +17,26 @@ func main() {
 	if err != nil {
 		log.Println("No .env file found")
 	}
+
 	db, err := database.New()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// DI (Dependency Injection)
 	cardRepo := cards.NewRepository(db)
 	cardService := cards.NewService(cardRepo)
 	cardHandler := cards.NewHandler(cardService)
 
 	r := chi.NewRouter()
+
+	// ✅ CORS middleware
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:5173"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	}))
 
 	r.Get("/cards", cardHandler.GetCards)
 
