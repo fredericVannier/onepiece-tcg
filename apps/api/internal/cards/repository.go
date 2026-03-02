@@ -1,6 +1,8 @@
 package cards
 
 import (
+	"strings"
+
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -30,6 +32,54 @@ func (r *Repository) FindAll(limit int, offset int) ([]CardEntity, error) {
 	return cards, err
 }
 
+func (r *Repository) Search(
+	name string,
+	color string,
+	rarity string,
+	cardType string,
+	page int,
+	limit int,
+) ([]CardEntity, int64, error) {
+
+	var cards []CardEntity
+	var total int64
+
+	offset := (page - 1) * limit
+
+	query := r.db.Model(&CardEntity{})
+
+	// 🔎 Filtres dynamiques
+	if name != "" {
+		query = query.Where("LOWER(name) LIKE ?", "%"+strings.ToLower(name)+"%")
+	}
+
+	if color != "" {
+		query = query.Where("color = ?", color)
+	}
+
+	if rarity != "" {
+		query = query.Where("rarity = ?", rarity)
+	}
+
+	if cardType != "" {
+		query = query.Where("card_type = ?", cardType)
+	}
+
+	// Count
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// Data paginée
+	if err := query.
+		Limit(limit).
+		Offset(offset).
+		Find(&cards).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return cards, total, nil
+}
 func (r *Repository) Upsert(card CardEntity) error {
 	return r.db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "external_id"}},

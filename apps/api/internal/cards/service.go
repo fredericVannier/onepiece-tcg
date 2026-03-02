@@ -15,3 +15,14 @@ func (s *Service) GetCards() ([]CardEntity, error) {
 func (s *Service) GetAllCards(limit int, offset int) ([]CardEntity, error) {
 	return s.repo.FindAll(limit, offset)
 }
+
+func (s *Service) SearchCards(
+	name string,
+	color string,
+	rarity string,
+	cardType string,
+	page int,
+	limit int,
+) ([]CardEntity, int64, error) {
+	return s.repo.Search(name, color, rarity, cardType, page, limit)
+}

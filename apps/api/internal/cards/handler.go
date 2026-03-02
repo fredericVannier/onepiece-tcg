@@ -13,30 +13,46 @@ type Handler struct {
 func NewHandler(service *Service) *Handler {
 	return &Handler{service: service}
 }
-
 func (h *Handler) GetCards(w http.ResponseWriter, r *http.Request) {
 
-	// pagination
-	limitStr := r.URL.Query().Get("limit")
-	offsetStr := r.URL.Query().Get("offset")
+	queryParams := r.URL.Query()
 
-	limit := 1020
-	offset := 0
+	name := queryParams.Get("name")
+	color := queryParams.Get("color")
+	rarity := queryParams.Get("rarity")
+	cardType := queryParams.Get("cardType")
 
-	if l, err := strconv.Atoi(limitStr); err == nil {
-		limit = l
+	page, _ := strconv.Atoi(queryParams.Get("page"))
+	limit, _ := strconv.Atoi(queryParams.Get("limit"))
+
+	if page <= 0 {
+		page = 1
+	}
+	if limit <= 0 {
+		limit = 20
 	}
 
-	if o, err := strconv.Atoi(offsetStr); err == nil {
-		offset = o
-	}
+	cards, total, err := h.service.SearchCards(
+		name,
+		color,
+		rarity,
+		cardType,
+		page,
+		limit,
+	)
 
-	cards, err := h.service.GetAllCards(limit, offset)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	response := map[string]interface{}{
+		"data":  cards,
+		"total": total,
+		"page":  page,
+		"limit": limit,
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(cards)
+	json.NewEncoder(w).Encode(response)
 }
