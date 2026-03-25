@@ -32,10 +32,10 @@ type Props = {
 };
 
 export function CardModal({ card, onClose }: Props) {
-  const { add, remove, has } = useBasket();
+  const { add, decrement, remove, qty } = useBasket();
   if (!card) return null;
 
-  const inBasket = has(card.id);
+  const cardQty = qty(card.id);
 
   return (
     <div
@@ -116,30 +116,47 @@ export function CardModal({ card, onClose }: Props) {
 
           <div className="flex items-center justify-between mt-auto">
             <div className="text-xs text-gray-400">{card.external_id}</div>
-            <button
-              onClick={() => (inBasket ? remove(card.id) : add(card))}
-              className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${
-                inBasket
-                  ? "bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
-                  : "bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50"
-              }`}
-            >
-              {inBasket ? (
-                <>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            {cardQty === 0 ? (
+              <button
+                onClick={() => add(card)}
+                className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                Add to basket
+              </button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => decrement(card.id)}
+                  className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 flex items-center justify-center font-bold text-sm transition-colors"
+                >
+                  −
+                </button>
+                <span className="text-sm font-semibold text-gray-800 dark:text-gray-100 tabular-nums w-4 text-center">
+                  {cardQty}
+                </span>
+                <button
+                  onClick={() => add(card)}
+                  className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-900/40 hover:bg-blue-200 dark:hover:bg-blue-900/60 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-sm transition-colors"
+                >
+                  +
+                </button>
+                <button
+                  onClick={() => remove(card.id)}
+                  aria-label="Remove all"
+                  className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-red-100 dark:hover:bg-red-900/30 text-gray-400 hover:text-red-500 dark:hover:text-red-400 flex items-center justify-center transition-colors"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                    <path d="M10 11v6M14 11v6"/>
+                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
                   </svg>
-                  Remove
-                </>
-              ) : (
-                <>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
-                  Add to basket
-                </>
-              )}
-            </button>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

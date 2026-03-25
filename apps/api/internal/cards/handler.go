@@ -15,6 +15,7 @@ type DevisItem struct {
 	Name       string  `json:"name"`
 	Rarity     string  `json:"rarity"`
 	Price      float64 `json:"price"`
+	Qty        int     `json:"qty"`
 }
 
 type DevisRequest struct {

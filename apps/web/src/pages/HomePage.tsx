@@ -33,22 +33,14 @@ function useCountUp(target: number, duration = 1800) {
   return { value, ref };
 }
 
-function Stat({
-  target,
-  suffix = "",
-  label,
-}: {
-  target: number;
-  suffix?: string;
-  label: string;
-}) {
+function Stat({ target, suffix = "", label }: { target: number; suffix?: string; label: string }) {
   const { value, ref } = useCountUp(target);
   return (
     <div ref={ref} className="flex flex-col items-center gap-1">
-      <span className="text-4xl font-extrabold text-white tabular-nums">
+      <span className="text-4xl font-extrabold text-gray-900 dark:text-white tabular-nums">
         {value.toLocaleString()}{suffix}
       </span>
-      <span className="text-sm text-gray-400 uppercase tracking-widest">{label}</span>
+      <span className="text-sm text-gray-500 dark:text-gray-400 uppercase tracking-widest">{label}</span>
     </div>
   );
 }
@@ -60,13 +52,10 @@ function Stars({ n }: { n: number }) {
       {Array.from({ length: 5 }).map((_, i) => (
         <svg
           key={i}
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
+          width="14" height="14" viewBox="0 0 24 24"
           fill={i < n ? "currentColor" : "none"}
-          stroke="currentColor"
-          strokeWidth="1.5"
-          className={i < n ? "text-yellow-400" : "text-gray-600"}
+          stroke="currentColor" strokeWidth="1.5"
+          className={i < n ? "text-yellow-400" : "text-gray-300 dark:text-gray-600"}
         >
           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
         </svg>
@@ -100,37 +89,37 @@ const TESTIMONIALS = [
 /* ─── Page ───────────────────────────────────────────────────────────────────── */
 export function HomePage() {
   return (
-    <div className="bg-gray-950 text-white">
+    <div className="bg-white dark:bg-gray-950 text-gray-900 dark:text-white">
 
       {/* ── Hero ──────────────────────────────────────────────────────────────── */}
       <section className="relative flex items-center justify-center min-h-[calc(100vh-65px)] overflow-hidden px-6">
-        {/* Background layers */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_40%,_#0f2744_0%,_transparent_70%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_40%_at_80%_70%,_#2d1b4e55_0%,_transparent_60%)]" />
-        {/* Subtle grid */}
+        {/* Background — light: soft blue tint / dark: deep navy glow */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_40%,_#dbeafe_0%,_transparent_70%)] dark:bg-[radial-gradient(ellipse_80%_60%_at_50%_40%,_#0f2744_0%,_transparent_70%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_40%_at_80%_70%,_#ede9fe66_0%,_transparent_60%)] dark:bg-[radial-gradient(ellipse_40%_40%_at_80%_70%,_#2d1b4e55_0%,_transparent_60%)]" />
+        {/* Grid */}
         <div
-          className="absolute inset-0 opacity-[0.04]"
+          className="absolute inset-0 opacity-[0.035] dark:opacity-[0.04]"
           style={{
             backgroundImage:
-              "linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px)",
+              "linear-gradient(#000 1px,transparent 1px),linear-gradient(90deg,#000 1px,transparent 1px)",
             backgroundSize: "60px 60px",
           }}
         />
 
         <div className="relative z-10 text-center max-w-3xl mx-auto">
-          <span className="inline-block text-xs font-semibold uppercase tracking-[0.2em] text-blue-400 mb-4 px-3 py-1 rounded-full border border-blue-400/30 bg-blue-400/10">
+          <span className="inline-block text-xs font-semibold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400 mb-4 px-3 py-1 rounded-full border border-blue-300 dark:border-blue-400/30 bg-blue-50 dark:bg-blue-400/10">
             One Piece TCG · Official Shop
           </span>
 
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05] mt-2">
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05] mt-2 text-gray-900 dark:text-white">
             Trouvez la carte
             <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-violet-400 to-blue-400 bg-[length:200%] animate-[shimmer_3s_linear_infinite]">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-violet-500 to-blue-500 dark:from-blue-400 dark:via-violet-400 dark:to-blue-400 bg-[length:200%] animate-[shimmer_3s_linear_infinite]">
               qui vous manque
             </span>
           </h1>
 
-          <p className="mt-6 text-gray-400 text-lg max-w-xl mx-auto leading-relaxed">
+          <p className="mt-6 text-gray-500 dark:text-gray-400 text-lg max-w-xl mx-auto leading-relaxed">
             Plus de 2 500 cartes issues de toutes les extensions. Filtrez, sélectionnez et recevez un devis instantané par email.
           </p>
 
@@ -143,7 +132,7 @@ export function HomePage() {
             </Link>
             <a
               href="#about"
-              className="w-full sm:w-auto text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 font-medium px-8 py-3.5 rounded-2xl transition-all text-sm text-center"
+              className="w-full sm:w-auto text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500 font-medium px-8 py-3.5 rounded-2xl transition-all text-sm text-center"
             >
               En savoir plus
             </a>
@@ -151,7 +140,7 @@ export function HomePage() {
         </div>
 
         {/* Scroll hint */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-gray-600 animate-bounce">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-gray-400 dark:text-gray-600 animate-bounce">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <line x1="12" y1="5" x2="12" y2="19" />
             <polyline points="19 12 12 19 5 12" />
@@ -160,33 +149,33 @@ export function HomePage() {
       </section>
 
       {/* ── Stats ─────────────────────────────────────────────────────────────── */}
-      <section className="border-y border-gray-800 bg-gray-900/50">
+      <section className="border-y border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
         <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-14 grid grid-cols-2 lg:grid-cols-4 gap-10">
-          <Stat target={2560}  suffix="+"  label="Cartes disponibles" />
-          <Stat target={30}    suffix="+"  label="Extensions" />
-          <Stat target={6}             label="Couleurs" />
-          <Stat target={98}    suffix="%" label="Clients satisfaits" />
+          <Stat target={2560} suffix="+"  label="Cartes disponibles" />
+          <Stat target={30}   suffix="+"  label="Extensions" />
+          <Stat target={6}               label="Couleurs" />
+          <Stat target={98}   suffix="%" label="Clients satisfaits" />
         </div>
       </section>
 
       {/* ── Testimonials ──────────────────────────────────────────────────────── */}
       <section className="max-w-[1280px] mx-auto px-6 lg:px-8 py-20">
         <div className="text-center mb-12">
-          <p className="text-xs font-semibold uppercase tracking-widest text-blue-400 mb-2">Avis clients</p>
-          <h2 className="text-3xl font-extrabold">Ce qu'ils disent de nous</h2>
+          <p className="text-xs font-semibold uppercase tracking-widest text-blue-600 dark:text-blue-400 mb-2">Avis clients</p>
+          <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white">Ce qu'ils disent de nous</h2>
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {TESTIMONIALS.map(({ name, role, stars, text }) => (
             <div
               key={name}
-              className="bg-gray-900 border border-gray-800 rounded-2xl p-6 flex flex-col gap-4 hover:border-gray-700 transition-colors"
+              className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 flex flex-col gap-4 hover:border-gray-300 dark:hover:border-gray-700 transition-colors"
             >
               <Stars n={stars} />
-              <p className="text-gray-300 text-sm leading-relaxed flex-1">"{text}"</p>
+              <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed flex-1">"{text}"</p>
               <div>
-                <p className="text-white font-semibold text-sm">{name}</p>
-                <p className="text-gray-500 text-xs">{role}</p>
+                <p className="text-gray-900 dark:text-white font-semibold text-sm">{name}</p>
+                <p className="text-gray-400 dark:text-gray-500 text-xs">{role}</p>
               </div>
             </div>
           ))}
@@ -194,22 +183,22 @@ export function HomePage() {
       </section>
 
       {/* ── About + Contact ───────────────────────────────────────────────────── */}
-      <section id="about" className="border-t border-gray-800 bg-gray-900/40">
+      <section id="about" className="border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/40">
         <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-20 grid lg:grid-cols-2 gap-12 lg:gap-20">
 
           {/* About */}
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-blue-400 mb-2">À propos</p>
-            <h2 className="text-3xl font-extrabold mb-5">La référence One Piece TCG</h2>
-            <p className="text-gray-400 leading-relaxed mb-4">
+            <p className="text-xs font-semibold uppercase tracking-widest text-blue-600 dark:text-blue-400 mb-2">À propos</p>
+            <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-5">La référence One Piece TCG</h2>
+            <p className="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">
               Passionnés du jeu de cartes One Piece, nous proposons un catalogue complet couvrant toutes les extensions officielles — de OP-01 Romance Dawn aux dernières sorties.
             </p>
-            <p className="text-gray-400 leading-relaxed mb-6">
+            <p className="text-gray-500 dark:text-gray-400 leading-relaxed mb-6">
               Notre outil de devis vous permet de sélectionner vos cartes, de visualiser le total en temps réel et de recevoir une offre personnalisée directement dans votre boîte mail.
             </p>
             <Link
               to="/cards"
-              className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors"
+              className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 text-sm font-medium transition-colors"
             >
               Voir le catalogue
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -221,9 +210,9 @@ export function HomePage() {
 
           {/* Contact */}
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-blue-400 mb-2">Contact</p>
-            <h2 className="text-3xl font-extrabold mb-5">Parlons-en</h2>
-            <p className="text-gray-400 leading-relaxed mb-8">
+            <p className="text-xs font-semibold uppercase tracking-widest text-blue-600 dark:text-blue-400 mb-2">Contact</p>
+            <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-5">Parlons-en</h2>
+            <p className="text-gray-500 dark:text-gray-400 leading-relaxed mb-8">
               Une question sur une carte, une commande spéciale ou un partenariat ? N'hésitez pas à nous écrire.
             </p>
 
@@ -251,17 +240,17 @@ export function HomePage() {
                 },
               ].map(({ icon, label, value, href }) => (
                 <div key={label} className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-gray-800 border border-gray-700 flex items-center justify-center text-blue-400 shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 shadow-sm">
                     {icon}
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">{label}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500">{label}</p>
                     {href ? (
-                      <a href={href} className="text-sm text-white hover:text-blue-400 transition-colors font-medium">
+                      <a href={href} className="text-sm text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium">
                         {value}
                       </a>
                     ) : (
-                      <p className="text-sm text-white font-medium">{value}</p>
+                      <p className="text-sm text-gray-900 dark:text-white font-medium">{value}</p>
                     )}
                   </div>
                 </div>
@@ -273,7 +262,7 @@ export function HomePage() {
       </section>
 
       {/* ── Footer ────────────────────────────────────────────────────────────── */}
-      <footer className="border-t border-gray-800 py-6 text-center text-xs text-gray-600">
+      <footer className="border-t border-gray-200 dark:border-gray-800 py-6 text-center text-xs text-gray-400 dark:text-gray-600">
         © {new Date().getFullYear()} One Piece TCG Shop — Tous droits réservés
       </footer>
 

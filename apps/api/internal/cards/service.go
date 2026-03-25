@@ -42,18 +42,27 @@ func (s *Service) SendDevis(items []DevisItem) error {
 	// Build email body
 	var sb strings.Builder
 	sb.WriteString("Bonjour,\n\nVoici le devis pour votre sélection de cartes One Piece TCG :\n\n")
-	sb.WriteString(fmt.Sprintf("%-40s %-6s %s\n", "Carte", "Rareté", "Prix"))
-	sb.WriteString(strings.Repeat("-", 60) + "\n")
+	sb.WriteString(fmt.Sprintf("%-40s %-6s %-5s %-10s %s\n", "Carte", "Rareté", "Qté", "Unit.", "Total"))
+	sb.WriteString(strings.Repeat("-", 70) + "\n")
 	var total float64
+	var totalQty int
 	for _, item := range items {
-		sb.WriteString(fmt.Sprintf("%-40s %-6s %.2f €\n", item.Name, item.Rarity, item.Price))
-		total += item.Price
+		qty := item.Qty
+		if qty <= 0 {
+			qty = 1
+		}
+		line := item.Price * float64(qty)
+		sb.WriteString(fmt.Sprintf("%-40s %-6s %-5d %-10s %.2f €\n",
+			item.Name, item.Rarity, qty,
+			fmt.Sprintf("%.2f €", item.Price), line))
+		total += line
+		totalQty += qty
 	}
-	sb.WriteString(strings.Repeat("-", 60) + "\n")
-	sb.WriteString(fmt.Sprintf("%-47s %.2f €\n", "TOTAL", total))
+	sb.WriteString(strings.Repeat("-", 70) + "\n")
+	sb.WriteString(fmt.Sprintf("%-53s %.2f €\n", fmt.Sprintf("TOTAL (%d carte(s))", totalQty), total))
 	sb.WriteString("\nCordialement,\nOne Piece TCG Shop\n")
 
-	subject := fmt.Sprintf("Devis One Piece TCG — %d carte(s) — %.2f €", len(items), total)
+	subject := fmt.Sprintf("Devis One Piece TCG — %d carte(s) — %.2f €", totalQty, total)
 	msg := fmt.Sprintf("From: %s\r\nTo: %s\r\nSubject: %s\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\n%s",
 		user, to, subject, sb.String())
 

@@ -9,12 +9,12 @@ import { ThemeToggle } from "./components/ThemeToggle";
 import { ScrollToTop } from "./components/ScrollToTop";
 
 function Header() {
-  const { items } = useBasket();
+  const { totalQty } = useBasket();
   const [basketOpen, setBasketOpen] = useState(false);
 
   return (
     <>
-      <header className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+      <header className="sticky top-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
         <div className="max-w-[1280px] mx-auto px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <NavLink
@@ -61,9 +61,9 @@ function Header() {
               <line x1="3" y1="6" x2="21" y2="6" />
               <path d="M16 10a4 4 0 0 1-8 0" />
             </svg>
-            {items.length > 0 && (
+            {totalQty > 0 && (
               <span className="absolute -top-1.5 -right-1.5 bg-blue-600 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
-                {items.length > 9 ? "9+" : items.length}
+                {totalQty > 99 ? "99+" : totalQty}
               </span>
             )}
           </button>
