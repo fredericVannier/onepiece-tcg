@@ -32,11 +32,50 @@ func (r *Repository) FindAll(limit int, offset int) ([]CardEntity, error) {
 	return cards, err
 }
 
+type SetInfo struct {
+	Code     string `json:"code"`
+	Name     string `json:"name"`
+	Sample   string `gorm:"column:sample" json:"-"`
+}
+
+func (r *Repository) GetSets() ([]SetInfo, error) {
+	var rows []SetInfo
+	err := r.db.Raw(`
+		SELECT
+			SPLIT_PART(external_id, '-', 1) AS code,
+			MIN(card_sets) AS sample
+		FROM cards
+		WHERE card_sets != ''
+		GROUP BY SPLIT_PART(external_id, '-', 1)
+		ORDER BY code
+	`).Scan(&rows).Error
+	if err != nil {
+		return nil, err
+	}
+	for i := range rows {
+		rows[i].Name = parseSetName(rows[i].Sample)
+	}
+	return rows, nil
+}
+
+// parseSetName extracts the human-readable name from a card_sets value.
+// e.g. "Card Set(s)-ROMANCE DAWN- [OP01]" → "ROMANCE DAWN"
+func parseSetName(cardSets string) string {
+	s := strings.TrimPrefix(cardSets, "Card Set(s)-")
+	if idx := strings.LastIndex(s, "- ["); idx > 0 {
+		s = s[:idx]
+	} else if idx := strings.LastIndex(s, " ["); idx > 0 {
+		s = s[:idx]
+	}
+	return strings.Trim(s, "- ")
+}
+
 func (r *Repository) Search(
 	name string,
 	color string,
 	rarity string,
 	cardType string,
+	cardSet string,
 	page int,
 	limit int,
 ) ([]CardEntity, int64, error) {
@@ -48,21 +87,20 @@ func (r *Repository) Search(
 
 	query := r.db.Model(&CardEntity{})
 
-	// 🔎 Filtres dynamiques
 	if name != "" {
 		query = query.Where("LOWER(name) LIKE ?", "%"+strings.ToLower(name)+"%")
 	}
-
 	if color != "" {
 		query = query.Where("color = ?", color)
 	}
-
 	if rarity != "" {
 		query = query.Where("rarity = ?", rarity)
 	}
-
 	if cardType != "" {
 		query = query.Where("card_type = ?", cardType)
+	}
+	if cardSet != "" {
+		query = query.Where("external_id LIKE ?", strings.ToUpper(cardSet)+"-%")
 	}
 
 	// Count

@@ -1,0 +1,12 @@
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Node
+node_modules/
+
+# Go
+apps/api/tmp/
+
+# Env
+apps/api/.env

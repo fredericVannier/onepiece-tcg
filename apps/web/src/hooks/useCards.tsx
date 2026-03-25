@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Card } from "../types/card";
 import { fetchCards } from "../api/cards.api";
 
@@ -8,46 +8,69 @@ export function useCards(searchParams: URLSearchParams) {
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
 
-  // On transforme searchParams en string pour une comparaison stable dans les dépendances
+  // Refs for synchronous guard checks inside callbacks (avoids stale closure bugs)
+  const loadingRef = useRef(false);
+  const hasMoreRef = useRef(true);
+  const abortRef = useRef<AbortController | null>(null);
+
   const paramsString = searchParams.toString();
 
-  // 1. Reset quand les filtres changent
+  // 1. Reset when filters change, cancel any in-flight request
   useEffect(() => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    loadingRef.current = false;
+    hasMoreRef.current = true;
+    setLoading(false);
     setCards([]);
     setPage(1);
     setHasMore(true);
   }, [paramsString]);
 
-  // 2. Fonction de chargement stabilisée
+  // 2. Stabilised load function
   const loadCards = useCallback(async () => {
-    if (loading || !hasMore) return;
+    if (loadingRef.current || !hasMoreRef.current) return;
 
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    loadingRef.current = true;
     setLoading(true);
+
     try {
       const copyParams = new URLSearchParams(paramsString);
       copyParams.set("page", page.toString());
       copyParams.set("limit", "20");
 
-      const res = await fetchCards(copyParams);
+      const res = await fetchCards(copyParams, controller.signal);
+
+      if (controller.signal.aborted) return;
 
       setCards((prev) => [...prev, ...res.data]);
-      setHasMore(res.data.length > 0);
+      const more = res.data.length > 0;
+      hasMoreRef.current = more;
+      setHasMore(more);
     } catch (error) {
-      console.error(error);
+      if ((error as Error).name !== "AbortError") {
+        console.error(error);
+      }
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) {
+        loadingRef.current = false;
+        setLoading(false);
+      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, paramsString]);
-  // Note: On ne met pas 'loading' ou 'hasMore' ici pour éviter les boucles,
-  // on gère la sécurité à l'intérieur de la fonction.
 
-  // 3. Déclenchement du fetch
+  // 3. Trigger fetch
   useEffect(() => {
     loadCards();
   }, [loadCards]);
 
-  return { cards, loadMore: () => setPage((p) => p + 1), hasMore, loading };
+  const loadMore = useCallback(() => setPage((p) => p + 1), []);
+
+  return { cards, loadMore, hasMore, loading };
 } // import type { Card } from "../types/card";
 // import { useEffect, useState } from "react";
 // import { fetchCards } from "../api/cards.api";

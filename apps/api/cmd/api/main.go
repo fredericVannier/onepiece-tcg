@@ -39,6 +39,8 @@ func main() {
 	}))
 
 	r.Get("/cards", cardHandler.GetCards)
+	r.Get("/sets", cardHandler.GetSets)
+	r.Get("/images/{cardNum}", cardHandler.ProxyImage)
 
 	log.Println("Server running on :8080")
 	http.ListenAndServe(":8080", r)

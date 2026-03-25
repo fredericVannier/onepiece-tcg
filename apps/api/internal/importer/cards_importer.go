@@ -8,6 +8,7 @@ import (
 	"onepiece-tcg-api/internal/cards"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type CardJSON struct {
@@ -65,7 +66,10 @@ func ImportCards(path string, db *gorm.DB) error {
 			CardSets:   c.CardSets,
 		}
 
-		if err := db.Create(&card).Error; err != nil {
+		if err := db.Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "external_id"}},
+			UpdateAll: true,
+		}).Create(&card).Error; err != nil {
 			return err
 		}
 	}

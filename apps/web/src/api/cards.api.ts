@@ -7,10 +7,17 @@ export type CardsResponse = {
   limit: number;
 };
 
-export async function fetchCards(params: URLSearchParams) {
-  const res = await fetch(`http://localhost:8080/cards?${params.toString()}`);
+export async function fetchCards(params: URLSearchParams, signal?: AbortSignal) {
+  const res = await fetch(`http://localhost:8080/cards?${params.toString()}`, { signal });
 
   return res.json() as Promise<CardsResponse>;
+}
+
+export type SetInfo = { code: string; name: string };
+
+export async function fetchSets(): Promise<SetInfo[]> {
+  const res = await fetch("http://localhost:8080/sets");
+  return res.json();
 }
 
 // export async function fetchCards(

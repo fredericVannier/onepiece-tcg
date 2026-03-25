@@ -8,9 +8,9 @@ export type Card = {
   image_url: string;
   rarity: string;
   effect: string;
-  cardType: string;
+  card_type: string;
   attribute: string;
   block: string;
   counter: string;
-  cardSets: string;
+  card_sets: string;
 };

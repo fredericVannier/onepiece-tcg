@@ -2,8 +2,12 @@ package cards
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
 	"strconv"
+
+	"github.com/go-chi/chi/v5"
 )
 
 type Handler struct {
@@ -21,6 +25,7 @@ func (h *Handler) GetCards(w http.ResponseWriter, r *http.Request) {
 	color := queryParams.Get("color")
 	rarity := queryParams.Get("rarity")
 	cardType := queryParams.Get("cardType")
+	cardSet := queryParams.Get("cardSet")
 
 	page, _ := strconv.Atoi(queryParams.Get("page"))
 	limit, _ := strconv.Atoi(queryParams.Get("limit"))
@@ -37,6 +42,7 @@ func (h *Handler) GetCards(w http.ResponseWriter, r *http.Request) {
 		color,
 		rarity,
 		cardType,
+		cardSet,
 		page,
 		limit,
 	)
@@ -55,4 +61,30 @@ func (h *Handler) GetCards(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
+}
+
+func (h *Handler) GetSets(w http.ResponseWriter, r *http.Request) {
+	sets, err := h.service.GetSets()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(sets)
+}
+
+func (h *Handler) ProxyImage(w http.ResponseWriter, r *http.Request) {
+	cardNum := chi.URLParam(r, "cardNum")
+	imageURL := fmt.Sprintf("https://en.onepiece-cardgame.com/images/cardlist/card/%s.png", cardNum)
+
+	resp, err := http.Get(imageURL)
+	if err != nil || resp.StatusCode != http.StatusOK {
+		http.NotFound(w, r)
+		return
+	}
+	defer resp.Body.Close()
+
+	w.Header().Set("Content-Type", "image/png")
+	w.Header().Set("Cache-Control", "public, max-age=86400")
+	io.Copy(w, resp.Body)
 }
