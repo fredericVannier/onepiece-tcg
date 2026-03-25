@@ -10,6 +10,17 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+type DevisItem struct {
+	ExternalID string  `json:"external_id"`
+	Name       string  `json:"name"`
+	Rarity     string  `json:"rarity"`
+	Price      float64 `json:"price"`
+}
+
+type DevisRequest struct {
+	Items []DevisItem `json:"items"`
+}
+
 type Handler struct {
 	service *Service
 }
@@ -71,6 +82,23 @@ func (h *Handler) GetSets(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(sets)
+}
+
+func (h *Handler) SendDevis(w http.ResponseWriter, r *http.Request) {
+	var req DevisRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid body", http.StatusBadRequest)
+		return
+	}
+	if len(req.Items) == 0 {
+		http.Error(w, "basket is empty", http.StatusBadRequest)
+		return
+	}
+	if err := h.service.SendDevis(req.Items); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *Handler) ProxyImage(w http.ResponseWriter, r *http.Request) {

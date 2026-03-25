@@ -1,3 +1,4 @@
+import { useBasket } from "../context/BasketContext";
 import type { Card } from "../types/card";
 
 const COLOR_BADGE: Record<string, string> = {
@@ -31,7 +32,10 @@ type Props = {
 };
 
 export function CardModal({ card, onClose }: Props) {
+  const { add, remove, has } = useBasket();
   if (!card) return null;
+
+  const inBasket = has(card.id);
 
   return (
     <div
@@ -39,15 +43,15 @@ export function CardModal({ card, onClose }: Props) {
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-2xl w-full flex flex-col sm:flex-row overflow-hidden"
+        className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-3xl w-full flex flex-col sm:flex-row overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Image */}
-        <div className="sm:w-56 shrink-0 bg-gray-100 dark:bg-gray-700">
+        <div className="sm:w-72 shrink-0 bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
           <img
             src={`http://localhost:8080/images/${card.external_id.replace("#", "")}`}
             alt={card.name}
-            className="w-full h-full object-cover"
+            className="w-full object-contain"
           />
         </div>
 
@@ -63,7 +67,14 @@ export function CardModal({ card, onClose }: Props) {
             </button>
           </div>
 
-          <ColorBadges color={card.color} />
+          <div className="flex items-center justify-between">
+            <ColorBadges color={card.color} />
+            {card.price > 0 && (
+              <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                {card.price.toFixed(2)} €
+              </span>
+            )}
+          </div>
 
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-2">
@@ -103,7 +114,33 @@ export function CardModal({ card, onClose }: Props) {
             </div>
           )}
 
-          <div className="text-xs text-gray-400 mt-auto">{card.external_id}</div>
+          <div className="flex items-center justify-between mt-auto">
+            <div className="text-xs text-gray-400">{card.external_id}</div>
+            <button
+              onClick={() => (inBasket ? remove(card.id) : add(card))}
+              className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${
+                inBasket
+                  ? "bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
+                  : "bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50"
+              }`}
+            >
+              {inBasket ? (
+                <>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                  Remove
+                </>
+              ) : (
+                <>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                  Add to basket
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

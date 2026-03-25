@@ -13,4 +13,5 @@ export type Card = {
   block: string;
   counter: string;
   card_sets: string;
+  price: number;
 };

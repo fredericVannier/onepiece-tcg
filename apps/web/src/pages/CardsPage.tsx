@@ -30,7 +30,7 @@ export function CardsPage() {
 
   return (
     <>
-      <div className="flex flex-col gap-4 pt-6">
+      <div className="max-w-[1280px] mx-auto px-6 lg:px-8 pb-8 flex flex-col gap-4 pt-6">
         <CardFilters params={params} setParams={setParams} sets={sets} />
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -43,7 +43,7 @@ export function CardsPage() {
               <img
                 src={`http://localhost:8080/images/${card.external_id.replace("#", "")}`}
                 alt={card.name}
-                className="w-full aspect-[2/3] object-cover"
+                className="w-full object-contain"
               />
               <div className="p-2">
                 <p className="text-xs font-semibold text-gray-800 dark:text-gray-100 truncate">{card.name}</p>

@@ -14,7 +14,8 @@ type CardEntity struct {
 	Attribute  string `json:"attribute"`
 	Block      string `json:"block"`
 	Counter    string `json:"counter"`
-	CardSets   string `json:"card_sets"`
+	CardSets   string  `json:"card_sets"`
+	Price      float64 `json:"price"`
 }
 
 func (CardEntity) TableName() string {
