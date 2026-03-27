@@ -1,4 +1,6 @@
+import { useState } from "react";
 import type { SetInfo } from "../api/cards.api";
+import { NaturalSearchBar } from "./NaturalSearchBar";
 
 type Props = {
   params: URLSearchParams;
@@ -7,14 +9,63 @@ type Props = {
 };
 
 export function CardFilters({ params, setParams, sets }: Props) {
+  const [aiMode, setAiMode] = useState(false);
+
   const update = (key: string, value: string) => {
     const next = new URLSearchParams(params);
     value ? next.set(key, value) : next.delete(key);
     setParams(next);
   };
 
+  const applyAiFilters = (filters: {
+    name?: string;
+    color?: string;
+    rarity?: string;
+    card_type?: string;
+    cardSet?: string;
+  }) => {
+    const next = new URLSearchParams();
+    if (filters.name) next.set("name", filters.name);
+    if (filters.color) next.set("color", filters.color);
+    if (filters.rarity) next.set("rarity", filters.rarity);
+    if (filters.card_type) next.set("cardType", filters.card_type);
+    if (filters.cardSet) next.set("cardSet", filters.cardSet);
+    setParams(next);
+  };
+
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 flex flex-wrap gap-3 items-center w-full overflow-hidden">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 flex flex-col gap-3 w-full overflow-hidden">
+      {/* AI/Manual mode toggle */}
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => setAiMode(false)}
+          className={`text-xs font-medium px-2.5 py-1 rounded-lg transition-colors ${
+            !aiMode
+              ? "bg-blue-600 text-white"
+              : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+          }`}
+        >
+          Filters
+        </button>
+        <button
+          onClick={() => setAiMode(true)}
+          className={`flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-lg transition-colors ${
+            aiMode
+              ? "bg-purple-600 text-white"
+              : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+          }`}
+        >
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/>
+          </svg>
+          AI Search
+        </button>
+      </div>
+
+      {aiMode ? (
+        <NaturalSearchBar onFilters={applyAiFilters} sets={sets} />
+      ) : (
+      <div className="flex flex-wrap gap-3 items-center w-full">
       <div className="relative flex-1 min-w-[180px]">
         <input
           placeholder="Search card..."
@@ -75,6 +126,8 @@ export function CardFilters({ params, setParams, sets }: Props) {
         <option value="UC">UC</option>
         <option value="C">C</option>
       </select>
+      </div>
+      )}
     </div>
   );
 }

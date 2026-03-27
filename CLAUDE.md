@@ -115,6 +115,9 @@ After scraping, re-run the importer to sync to the database.
 | `GET` | `/sets` | All distinct set codes + names from DB |
 | `GET` | `/images/{cardNum}` | Image proxy (e.g. `/images/OP01-001`) |
 | `POST` | `/devis` | Send a quote email to `DEVIS_TO` |
+| `POST` | `/search/natural` | NLP query → structured filters |
+| `POST` | `/recommendations` | Basket → suggested complementary cards |
+| `POST` | `/devis/chat` | Devis assistant (SSE streaming) |
 
 ### `/cards` query params
 `name`, `color`, `rarity`, `cardType`, `cardSet`, `page`, `limit`
@@ -129,14 +132,37 @@ After scraping, re-run the importer to sync to the database.
 ```
 Returns `204 No Content` on success. Errors 400 if basket empty, 500 if SMTP misconfigured.
 
+### `POST /search/natural` body
+```json
+{ "query": "luffy rouge pas cher" }
+```
+Returns `{ "name": "luffy", "color": "Red", "rarity": "C,UC", "card_type": "", "card_set": "" }`.
+Rule-based keyword parser (FR + EN). No API key needed.
+
+### `POST /recommendations` body
+```json
+{ "basket": [{ "external_id": "OP01-001", "name": "...", "color": "Red", "rarity": "SR", "card_type": "Leader", "price": 24.5 }] }
+```
+Returns `{ "recommendations": [{ "external_id": "...", "reason": "...", "card": {...} }], "reasoning": "..." }`.
+Heuristic: score by same set (+3), same color (+2), complementary rarity/type (+1).
+
+### `POST /devis/chat` body
+```json
+{ "messages": [{ "role": "user", "content": "Quel est le total ?" }], "basket": [...] }
+```
+Returns SSE stream (`data: token\n\n` … `data: [DONE]\n\n`). Rule-based FAQ bot.
+
 ## Frontend Structure
 
 ```
 apps/web/src/
-├── api/          cards.api.ts              — fetchCards(), fetchSets()
-├── components/   BasketModal.tsx           — basket overlay with total + send devis button
-│                 CardFilters.tsx           — search + set/color/rarity selects
+├── api/          cards.api.ts              — fetchCards(), fetchSets(), searchNatural(),
+│                                             fetchRecommendations(), streamChatDevis()
+├── components/   BasketModal.tsx           — 3 tabs: Basket / Suggestions / Assistant
+│                 CardFilters.tsx           — toggle Filters ↔ AI Search (NaturalSearchBar)
 │                 CardModal.tsx             — card detail overlay with price + add-to-basket
+│                 DevisChat.tsx             — SSE chat component (FAQ bot)
+│                 NaturalSearchBar.tsx      — NLP search bar → fills filter params
 │                 InfiniteScrollTrigger.tsx
 │                 ScrollToTop.tsx           — floating scroll-to-top button
 │                 ThemeToggle.tsx           — floating sun/moon button
@@ -155,6 +181,42 @@ apps/web/src/
 | `/cards` | `CardsPage` | Full card catalog with filters and infinite scroll |
 
 `App.tsx` wraps everything in `<BasketProvider>`. The `Header` component (defined inside `App.tsx`) consumes `useBasket` to show the basket count badge and toggle `BasketModal`.
+
+## Agents
+
+All agents live in `apps/api/`. They run as standalone CLIs — no API key needed (rule-based).
+
+### Pipeline agents (run manually or on a cron)
+
+| Command | What it does |
+|---|---|
+| `go run ./cmd/agents/set-watcher` | Détecte sets manquants → scrape → import → seed prix |
+| `go run ./cmd/agents/quality` | Audit DB : images manquantes, prix à 0, doublons, distribution |
+| `go run ./cmd/agents/pricing` | Seed prix déterministes (FNV hash + plages par rareté) |
+| `go run ./cmd/agents/orchestrator` | Lance les 3 agents ci-dessus en séquence |
+
+Options:
+```bash
+go run ./cmd/agents/pricing --set OP01      # price only one set
+go run ./cmd/agents/pricing --all           # re-price all cards
+go run ./cmd/agents/orchestrator --skip-pricing
+```
+
+### Agent API endpoints (served by the main API)
+
+Implémentés dans `internal/agents/` :
+- `search.go` — keyword parser FR/EN → `SearchFilters`
+- `recommend.go` — score par set/couleur/type → `RecommendationResult`
+- `devis_chat.go` — FAQ bot SSE (total, livraison, paiement, stock…)
+
+### Upgrade vers Claude (futur)
+
+Quand tu auras une clé Anthropic (`ANTHROPIC_API_KEY` dans `.env`), tu pourras remplacer les 3 fichiers ci-dessus par des versions LLM sans toucher aux handlers :
+- `search.go` → `NaturalSearch(query string)` via Claude Haiku (tool use `set_filters`)
+- `recommend.go` → `Recommend(basket, candidates)` via Claude Haiku
+- `devis_chat.go` → `ChatDevis(messages, basket, w)` via streaming Claude Haiku
+
+Le SDK Go est déjà dans `go.mod` (`github.com/anthropics/anthropic-sdk-go`).
 
 ## Key Decisions & Gotchas
 

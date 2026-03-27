@@ -13,8 +13,7 @@ import (
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
+	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found")
 	}
 
@@ -29,7 +28,6 @@ func main() {
 
 	r := chi.NewRouter()
 
-	// ✅ CORS middleware
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:5173"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -38,10 +36,16 @@ func main() {
 		MaxAge:           300,
 	}))
 
+	// Existing endpoints
 	r.Get("/cards", cardHandler.GetCards)
 	r.Get("/sets", cardHandler.GetSets)
 	r.Get("/images/{cardNum}", cardHandler.ProxyImage)
 	r.Post("/devis", cardHandler.SendDevis)
+
+	// Agent endpoints
+	r.Post("/search/natural", cardHandler.SearchNatural)
+	r.Post("/recommendations", cardHandler.Recommend)
+	r.Post("/devis/chat", cardHandler.ChatDevis)
 
 	log.Println("Server running on :8080")
 	http.ListenAndServe(":8080", r)

@@ -1,7 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useBasket } from "../context/BasketContext";
+import { fetchRecommendations } from "../api/cards.api";
+import type { Recommendation } from "../api/cards.api";
+import { DevisChat } from "./DevisChat";
 
 type SendState = "idle" | "sending" | "sent" | "error";
+type Tab = "basket" | "recommend" | "chat";
 
 const RARITY_ORDER = ["L", "SR", "R", "UC", "C"];
 
@@ -20,6 +24,32 @@ export function BasketModal({ onClose }: { onClose: () => void }) {
   const { entries, totalQty, totalPrice, add, decrement, remove, clear } = useBasket();
   const [sendState, setSendState] = useState<SendState>("idle");
   const [confirmClear, setConfirmClear] = useState(false);
+  const [activeTab, setActiveTab] = useState<Tab>("basket");
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [recReasoning, setRecReasoning] = useState("");
+  const [recLoading, setRecLoading] = useState(false);
+
+  // Fetch recommendations when switching to that tab
+  useEffect(() => {
+    if (activeTab !== "recommend" || entries.length === 0) return;
+    setRecLoading(true);
+    fetchRecommendations(
+      entries.map(({ card }) => ({
+        external_id: card.external_id,
+        name: card.name,
+        color: card.color,
+        rarity: card.rarity,
+        card_type: card.card_type,
+        price: card.price,
+      }))
+    )
+      .then((res) => {
+        setRecommendations(res.recommendations);
+        setRecReasoning(res.reasoning);
+      })
+      .catch(() => {})
+      .finally(() => setRecLoading(false));
+  }, [activeTab]);
 
   /* Rarity breakdown */
   const rarityMap = entries.reduce<Record<string, number>>((acc, { card, qty }) => {
@@ -75,7 +105,7 @@ export function BasketModal({ onClose }: { onClose: () => void }) {
             )}
           </div>
           <div className="flex items-center gap-2">
-            {entries.length > 0 && !confirmClear && (
+            {entries.length > 0 && !confirmClear && activeTab === "basket" && (
               <button
                 onClick={() => setConfirmClear(true)}
                 className="text-xs text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors px-2 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
@@ -109,7 +139,105 @@ export function BasketModal({ onClose }: { onClose: () => void }) {
           </div>
         </div>
 
-        {/* ── Items ── */}
+        {/* ── Tabs ── */}
+        {entries.length > 0 && (
+          <div className="flex border-b border-gray-200 dark:border-gray-700 shrink-0">
+            {(["basket", "recommend", "chat"] as Tab[]).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`flex-1 py-2.5 text-xs font-semibold transition-colors ${
+                  activeTab === tab
+                    ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                }`}
+              >
+                {tab === "basket" && "🛒 Basket"}
+                {tab === "recommend" && "✨ Suggestions"}
+                {tab === "chat" && "💬 Assistant"}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* ── Chat Tab ── */}
+        {activeTab === "chat" && (
+          <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+            <DevisChat
+              basket={entries.map(({ card, qty }) => ({
+                external_id: card.external_id,
+                name: card.name,
+                rarity: card.rarity,
+                price: card.price,
+                qty,
+              }))}
+            />
+          </div>
+        )}
+
+        {/* ── Recommendations Tab ── */}
+        {activeTab === "recommend" && (
+          <div className="flex-1 overflow-y-auto px-4 py-3">
+            {recLoading ? (
+              <div className="flex flex-col items-center justify-center py-12 gap-3">
+                <svg className="animate-spin text-purple-500" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                </svg>
+                <p className="text-sm text-gray-400">Generating suggestions…</p>
+              </div>
+            ) : recommendations.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-12">No suggestions available.</p>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {recReasoning && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 italic">{recReasoning}</p>
+                )}
+                {recommendations.map((rec) => (
+                  <div key={rec.external_id} className="flex items-start gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-750 border border-gray-100 dark:border-gray-700">
+                    {rec.card && (
+                      <img
+                        src={`http://localhost:8080/images/${rec.card.external_id.replace("#", "")}`}
+                        alt={rec.card.name}
+                        className="w-10 h-14 object-contain rounded-lg shrink-0 bg-gray-100 dark:bg-gray-700"
+                      />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">
+                        {rec.card?.name ?? rec.external_id}
+                      </p>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        {rec.card && (
+                          <>
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-300">
+                              {rec.card.rarity}
+                            </span>
+                            <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                              {rec.card.price.toFixed(2)} €
+                            </span>
+                          </>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
+                        {rec.reason}
+                      </p>
+                    </div>
+                    {rec.card && (
+                      <button
+                        onClick={() => rec.card && add(rec.card)}
+                        className="shrink-0 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg transition-colors"
+                      >
+                        + Add
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Items Tab ── */}
+        {(activeTab === "basket" || entries.length === 0) && (
         <div className="overflow-y-auto flex-1 px-4 py-3">
           {entries.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-14 gap-3">
@@ -185,9 +313,10 @@ export function BasketModal({ onClose }: { onClose: () => void }) {
             </ul>
           )}
         </div>
+        )}
 
-        {/* ── Footer ── */}
-        {entries.length > 0 && (
+        {/* ── Footer (basket tab only) ── */}
+        {entries.length > 0 && activeTab === "basket" && (
           <div className="px-5 py-4 border-t border-gray-200 dark:border-gray-700 shrink-0 flex flex-col gap-3">
             {/* Total */}
             <div className="flex items-center justify-between">
